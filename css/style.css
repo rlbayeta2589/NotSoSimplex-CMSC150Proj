@@ -1,0 +1,104 @@
+body {
+	background-color: #9e9e9e;
+}
+
+#banner {
+	padding-left:2%;
+	background-color: #ffce80;
+}
+
+#main-content {
+	background-color: #fafafa;
+	min-height: 99vh;
+}
+
+#main-tabs {
+	background-color: #b4d8c0;
+}
+
+.tabs .tab a {
+	color: #9e9e9e;
+	font-weight: bold;
+}
+
+.tabs .tab a.active {
+	color: black;
+	font-weight: bold;
+}
+
+.tabs .indicator {
+	height: 3px;
+	background-color: #b56357;
+}
+
+.ult-header {
+	background-color: white;
+	font-size: 20px;
+}
+
+.ult-collapse {
+	padding: 2% 0;
+}
+
+#ult-solve {
+	color: black;
+	font-weight: bold;
+	background-color: #b4d8c0 !important;
+	float: right;
+	margin-right: 1%;
+	margin-bottom: 1%;
+}
+
+input[type=text] {
+	height: auto;
+	margin: 0;
+	text-align: center;
+	width: 60%;
+}
+
+#v-add:focus {
+	background-color: white;
+	outline: -webkit-focus-ring-color auto 5px;
+    outline-color: -webkit-focus-ring-color;
+    outline-style: auto;
+    outline-width: 5px;
+}
+
+.btn-floating {
+    width: 30px;
+    height: 30px;
+    line-height: 35px;
+}
+
+.var i {
+    font-size: 15px;
+    line-height: 20px;
+}
+
+#obj-swap i , .const-swap i{
+	padding-left: 2px;
+    font-size: 25px;
+    line-height: 30px;
+}
+
+[contenteditable=true]:empty:before {
+	content: attr(placeholder);
+	color:gray;
+}
+
+[contenteditable=true]:focus{
+	background-color: transparent;
+}
+
+[contenteditable=true] br{
+	display:none;
+}
+
+[contenteditable=true]{
+	background-color: rgba(0,0,0,0.05);
+}
+
+
+.pagination li{
+	width: 30px;
+}

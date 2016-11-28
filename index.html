@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Ultimate Optimizer</title>
+	<meta charset="UTF-8">
+	
+	<link rel="stylesheet" href="./css/materialize.css"/>
+	<link rel="stylesheet" href="./css/style.css">
+	<link rel="stylesheet" href="./css/material-icons.css">
+
+	<script src="./js/jquery.js"></script>
+	<script src="./js/materialize.js"></script>
+	<script src="./js/sylvester.js"></script>
+</head>
+<body>
+	<div id="main-content" class="container">
+		<div id="banner" class="row">
+			<span style="font-size:50px; font-weight:bold;">CMSC 150</span><br/>
+			<span style="font-size:30px;">Numerical and Symbolic Computation</span>
+		</div>
+		<div class="row">
+			<div class="col s12">
+				<ul id="main-tabs" class="tabs">
+					<li class="tab col s6"><a class="active" href="#ultimate">Ultimate Optimizer</a></li>
+					<li class="tab col s6"><a href="#diet">Diet Problem Solver</a></li>
+				</ul>
+			</div>
+			<div id="ultimate" class="col s12">
+
+				<ul class="collapsible" data-collapsible="expandable">
+					<li>
+						<div class="ult-header collapsible-header">Objective Function</div>
+						<div class="ult-collapse row center"  style="font-size:25px;">
+							<div class="col s4">
+								<span>
+									<button id="obj-swap" class="btn btn-floating waves-effect waves-light">
+										<i class="material-icons">swap_vertical</i>
+									</button>
+									<span class="obj-z"> Mazimize Z = </span>
+									<span class="obj-z" style="display:none"> Minimize Z = </span>
+								</span>
+							</div>
+							<div id="obj-RHS" class="col s8 pull-s1">
+								<span id="obj-f" style="color:#bdbdbd;">&lt; Please enter some Variables &gt;</span>
+								</span>
+							</div>
+						</div>
+					</li>
+					<li>
+						<div class="ult-header collapsible-header active">Variables</div>
+						<div class="ult-collapse collapsible-body" style="padding:0">
+							<table id="ultvar-supertable" class="highlight centered">
+								<thead>
+									<tr>
+										<th data-field="id">Name</th>
+										<th data-field="name">Description</th>
+										<th style="width:10%">
+											<button id="ultvar-add" class="btn-floating waves-effect waves-light var">
+												<i class="material-icons">add</i>
+											</button>
+											<button id="ultvar-done" class="btn-floating waves-effect waves-light var">
+												<i class="material-icons">check</i>
+											</button>
+										</th>
+									</tr>
+								</thead>
+
+								<tbody id="ultvar-table">
+									<tr class="data">
+										<td class="v-input v-name"><input type="text"/></td>
+										<td class="v-input v-desc"><input type="text"/></td>
+										<td></td>
+									</tr>
+									<tr class="data">
+										<td class="v-input v-name"><input type="text"/></td>
+										<td class="v-input v-desc"><input type="text"/></td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</li>
+					<li>
+						<div class="ult-header collapsible-header active">Constraints</div>
+						<div class="ult-collapse collapsible-body" style="margin-top:0;">
+							<div class="row" style="margin:0;">
+								<div class="col s4 push-s8" style="text-align:center;">
+
+									<span id="var-list" style="color:#bdbdbd;">
+										&lt; Please enter some Variables &gt;
+									</span>
+									<button id="const-add" class="btn btn-floating waves-effect waves-light var right">
+										<i class="material-icons">add</i>
+									</button>
+								</div>
+								<div class="col s10 push-s1" style="text-align:center;">
+									<ul id="const-list" class="collection">
+									</ul>
+								</div>
+							</div>
+						</div>
+					</li>
+				</ul>
+				<a id="ult-solve" class="waves-effect waves-light btn">solve</a>
+			</div>
+			<div id="diet" class="col s12">Unread</div>
+		</div>
+	</div>
+
+	<div id="confirm-modal" class="modal modal-fixed-footer">
+		<div class="modal-content">
+			<h4>Objective Function</h4>
+			<h5 id="modal-obj"></h5><br/>
+			<h4>Variables</h4>
+			<span id="modal-var"></span><br/><br/>
+			<h4>Constraints</h4>
+			<span id="modal-const"></span><br/><br/>
+		</div>
+		<div class="modal-footer">
+			<a href="#!" id = "modal-confirm" class=" modal-action modal-close waves-effect waves-green btn-flat">Confirm</a>
+		</div>
+	</div>
+
+	<script src="./js/script.js"></script>
+</body>
+</html>
