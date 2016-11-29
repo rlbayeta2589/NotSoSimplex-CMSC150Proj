@@ -22,9 +22,12 @@ $(document).ready(function(){
 	result = simplex.SIMPLEX_METHOD(simplex_data);
 
 	setTimeout(function() {
+		generateData();
 		generateTables();
 		generatePagination();
+		generateResultsTables();
 		populateTables(1);
+		populateResult(1);
 		$('.solution').toggle();
 	}, 600);
 
@@ -34,6 +37,33 @@ $(document).ready(function(){
 /*===========================================================================
 								FUNCTIONS
 ===========================================================================*/
+
+var generateData = function(){
+	$('#sol-data').append([
+		'<h5>', simplex_data.objective._function.replace(/\*/g,''), '</h5>',
+		'<p style="text-indent:30px;"> subjective to </p>'
+	].join(''));
+
+	for(var i=0;i<simplex_data.constraints.length;i++){
+		$('#sol-data').append([
+			'<p style="text-indent:40px; font-size:130%; margin:0">',
+			simplex_data.constraints[i]
+				.replace(/( \* )/g,'')
+				.replace('<=', '&le;')
+				.replace('>=', '&ge;'),
+			'</p>'
+		].join(''));
+	}
+
+		$('#sol-data').append([
+			'<p style="text-indent:40px; font-size:130%; margin:0">',
+				simplex_data.objective.variables.join(', '),
+				'&ge; 0',
+			'</p>'
+		].join(' '));
+}
+
+/*===========================================================================*/
 
 var generateTables = function(){
 	var thead = $('#sol-thead'),
@@ -71,6 +101,7 @@ var generatePagination = function(){
 		useUrlParameter: false,
 		onClickCallback: function(requestedPage) {
 			populateTables(requestedPage);
+			populateResult(requestedPage);
 		}
 	});
 };
@@ -98,3 +129,35 @@ var populateTables = function(page_no){
 		return ret;
 	});
 };
+
+/*===========================================================================*/
+
+var generateResultsTables = function(){
+	var tbody = $('#val-tbody'),
+		body_data = "",
+		slacks = result.slacks.slice(0,-1),
+		slack1,
+		slack2;
+
+	for(var i=0;i<=Math.round(slacks.length/2);i++){
+		slack1 = slacks[i];
+		slack2 = slacks[i+(Math.floor(slacks.length/2))+1]; 
+
+		body_data += '<td style="font-weight:bold">'+ slack1 +'</td>';
+		body_data += '<td id="slack-'+slack1+'" class="element"></td>';
+		if(slack2){
+			body_data += '<td style="font-weight:bold">'+ slack2 +'</td>';
+			body_data += '<td id="slack-'+slack2+'" class="element"></td>';
+		}
+		tbody.append('<tr class="data">' + body_data + '<tr>');
+		body_data = "";
+	}	
+}
+
+/*===========================================================================*/
+
+var populateResult = function(index_no){
+	for(var i=0;i<result.slacks.length;i++){
+		$('#slack-'+result.slacks[i]).html(result.values[index_no-1][i]);		
+	}
+}
