@@ -3,8 +3,12 @@
 var simplex_data = {},
 	initial = [],
 	slacks = [],
-	values = [[]],
-	tableau = [];
+	alternate = [],
+	a_flags = [],
+	values = [],
+	tableau = [],
+	BIG_M = [],
+	obj = "";
 
 var simplex = {
 
@@ -13,7 +17,12 @@ var simplex = {
 
 		simplex.createSlacks();
 
-		var func = simplex_data.objective._function;
+		var temp_num = 0;
+
+		obj = simplex_data.objective._Z;
+
+		if(obj=="MAX") temp_num = -1;
+		else if(obj=="MIN") temp_num = 1;
 
 		for (var i = 0; i < simplex_data.constraints.length; i++) {
 			var temp = simplex_data.constraints[i],
@@ -27,6 +36,7 @@ var simplex = {
 
 			initarr[slacks.indexOf('RHS')] = Number(temparr[temparr.length-1]);
 			initarr[slacks.indexOf('S'+(i+1))] = slack_val;
+			initarr[slacks.indexOf('A'+(i+1))] = 1;
 
 			initial.push(initarr);
 		}
@@ -35,7 +45,7 @@ var simplex = {
 
 		for (var j = 0; j < simplex_data.objective.variables.length; j++){
 			z_arr[slacks.indexOf(simplex_data.objective.variables[j])] = 
-					simplex_data.objective.constants[j] * -1;
+					simplex_data.objective.constants[j] * temp_num;
 		}
 
 		z_arr[slacks.indexOf('Z')] = 1;
@@ -47,11 +57,35 @@ var simplex = {
 
 		for (var i = 0; i < simplex_data.objective.variables.length; i++){
 			slacks.push(simplex_data.objective.variables[i]);
+			BIG_M[i] = 1;
 		}
 
 		for (var i = 0; i < simplex_data.constraints.length; i++) {
-			slacks.push("S" + (i+1));	
+			slacks.push("S" + (i+1));
+
+			a_flags[i] = false;
+			if(simplex_data.constraints[i].includes('>=')){
+				alternate.push("A" + (i+1));
+				a_flags[i] = true;
+			}
 		}
+
+		for (var i = 0; i < alternate.length; i++) {
+			slacks.push(alternate[i]);
+		}
+
+
+		var counter = 0;
+		for (var i = 0; i < a_flags.length; i++) {
+			if(a_flags[i]){
+				BIG_M[simplex_data.objective.variables.length + i] = 1;
+				BIG_M[simplex_data.objective.variables.length + a_flags.length + counter] = -1;
+				counter++;
+			}else{
+				BIG_M[simplex_data.objective.variables.length + i] = 0;
+			}
+		}
+		BIG_M[BIG_M.length] = 1;
 
 		slacks.push("Z");
 		slacks.push("RHS");
@@ -86,14 +120,51 @@ var simplex = {
 
 		simplex.createInitialMatrix(data);
 
-		table = simplex.copyArray(initial);
+		table = simplex.copy2DArray(initial);
 
 		tableau.push(initial);
 
+		temp_val = new Array(slacks.length).join('0').split('').map(parseFloat);
+
+		for(var j=0; j<slacks.length-1; j++){
+			temp = simplex.getCol(table,j);
+			temp_num = temp.indexOf(1);
+
+			if(Number(temp.sort().join('')) === 1){
+				temp_val[j] = table[temp_num][slacks.indexOf("RHS")];
+			}else{
+				temp_val[j] = 0;
+			}
+		}
+
+		values.push(temp_val);
+
 		while(!stopping_criteria){
-			last_row = simplex.getLastRow(table);
-			col_elem = simplex.getMinimum(last_row);
-			index_PC = last_row.indexOf(col_elem);
+
+			if(obj=="MAX" && !alternate.length){
+				last_row = simplex.getLastRow(table);
+				col_elem = simplex.getMinimum(last_row);
+				index_PC = last_row.indexOf(col_elem);
+			}else if(obj=="MIN" || alternate.length){
+				last_row = simplex.getLastRow(table);
+
+				var temp_row = simplex.copy1DArray(last_row);
+
+					for(var x=0; x<temp_row.length; x++){
+						temp_row[x] = (simplex.sumAlternate(simplex.getCol(table,x)) * -1 *
+										(BIG_M[x])*999999) - temp_row[x];
+
+					}
+
+
+				col_elem = simplex.getMinimum(temp_row);
+				index_PC = temp_row.indexOf(col_elem);
+				
+				console.log(last_row);
+				console.log(temp_row);
+				console.log(col_elem);
+				
+			}
 
 			if(col_elem >= 0) break;
 
@@ -129,23 +200,40 @@ var simplex = {
 				}
 			}
 
+			for(var k=0; k<a_flags.length-1; k++){
+				if(temp_val.slice(slacks.length-a_flags.length-1,-1)[k] == 0){
+					a_flags[k] = false;
+				}				
+			}
 
-			tableau.push(simplex.copyArray(table));
+			tableau.push(simplex.copy2DArray(table));
 			values.push(temp_val);
 			
+			simplex.printTableau(table);
 		}
 
 		return {
 			tableau : tableau,
 			values : values,
-			slacks : slacks
+			slacks : slacks,
+			alternate : alternate
 		};
 	},
 
 	/*===========================================================================*/
 	// HELPERS
 
-	copyArray : function(arr){
+	copy1DArray : function(arr){
+		var temp = [];
+
+		for(var i=0; i<arr.length; i++){
+			temp[i] = arr[i];
+		}
+
+		return temp;
+	},
+
+	copy2DArray : function(arr){
 		var temp = [];
 
 		for(var i=0; i<arr.length; i++){
@@ -178,9 +266,25 @@ var simplex = {
 		})
 	},
 
+	hasAlternate : function(arr){
+		for(var i=0; i<arr.length; i++){
+			if(arr[i]) return true;
+		}
+		return false;
+	},
+
+	sumAlternate : function(arr){
+		return arr.reduce(function(a,b,i){
+			if(a_flags[i]){
+				return a += b;
+			}
+			return a;
+		}, 0);
+	},
+
 	divideArrayArray : function(arr1,arr2){
 		return arr2.reduce(function(a,b,i){
-			if(!isFinite(a[i]/b)){
+			if(!isFinite(a[i]/b) || isNaN(a[i]/b) ){
 				a[i] = 0;
 				return a;
 			}else{
@@ -199,7 +303,11 @@ var simplex = {
 
 	divideArrayScalar : function(arr, num){
 		return arr.reduce(function(a,b){
-			return a.concat(b/num);
+			if(!isFinite(b/num) || isNaN(b/num) ){
+				return a.concat(0);
+			}else{
+				return a.concat(b/num);
+			}
 		}, []);
 	},
 
